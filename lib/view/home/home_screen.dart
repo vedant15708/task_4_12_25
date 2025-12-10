@@ -5,10 +5,19 @@ import '../add_employee/add_employee_screen.dart';
 import '../widgets/employee_card.dart';
 
 class HomeScreen extends StatelessWidget {
-  final store = EmployeeStore();
+  final EmployeeStore store = EmployeeStore();
 
   HomeScreen({super.key}) {
     store.loadEmployees();
+  }
+
+  void showSuccess(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   void showError(BuildContext context, String message) {
@@ -23,6 +32,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
@@ -39,7 +50,7 @@ class HomeScreen extends StatelessWidget {
             return Center(child: CircularProgressIndicator());
           }
 
-          // ERROR UI
+          // ❌ ERROR STATE
           if (store.errorMessage.isNotEmpty) {
             return Center(
               child: Column(
@@ -69,6 +80,7 @@ class HomeScreen extends StatelessWidget {
             );
           }
 
+          // LIST VIEW OF EMPLOYEES
           return ListView.builder(
             padding: EdgeInsets.all(16),
             itemCount: store.employees.length,
@@ -77,14 +89,16 @@ class HomeScreen extends StatelessWidget {
 
               return EmployeeCard(
                 employee: emp,
-                isSelected: index == 0,
+                isSelected: index == 0, // You can update selection logic later
                 onDelete: () async {
                   try {
                     await store.deleteEmployee(emp.id);
+                    showSuccess(context, "Employee deleted successfully!");
                   } catch (e) {
                     showError(context, e.toString());
                   }
                 },
+
                 onEdit: () async {
                   final updated = await Navigator.push(
                     context,
@@ -96,6 +110,7 @@ class HomeScreen extends StatelessWidget {
                   if (updated == true) {
                     try {
                       await store.loadEmployees();
+                      showSuccess(context, "Employee updated successfully!");
                     } catch (e) {
                       showError(context, e.toString());
                     }
@@ -109,21 +124,25 @@ class HomeScreen extends StatelessWidget {
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
+        child: Icon(Icons.add, color: Colors.white),
+
         onPressed: () async {
           final added = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => AddEmployeeScreen()),
+            MaterialPageRoute(
+              builder: (_) => AddEmployeeScreen(),
+            ),
           );
 
           if (added == true) {
             try {
               await store.loadEmployees();
+              showSuccess(context, "Employee added successfully!");
             } catch (e) {
               showError(context, e.toString());
             }
           }
         },
-        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }
