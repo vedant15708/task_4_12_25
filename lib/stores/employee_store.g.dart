@@ -45,6 +45,60 @@ mixin _$EmployeeStore on _EmployeeStore, Store {
     });
   }
 
+  late final _$isDetailLoadingAtom = Atom(
+    name: '_EmployeeStore.isDetailLoading',
+    context: context,
+  );
+
+  @override
+  bool get isDetailLoading {
+    _$isDetailLoadingAtom.reportRead();
+    return super.isDetailLoading;
+  }
+
+  @override
+  set isDetailLoading(bool value) {
+    _$isDetailLoadingAtom.reportWrite(value, super.isDetailLoading, () {
+      super.isDetailLoading = value;
+    });
+  }
+
+  late final _$errorMessageAtom = Atom(
+    name: '_EmployeeStore.errorMessage',
+    context: context,
+  );
+
+  @override
+  String get errorMessage {
+    _$errorMessageAtom.reportRead();
+    return super.errorMessage;
+  }
+
+  @override
+  set errorMessage(String value) {
+    _$errorMessageAtom.reportWrite(value, super.errorMessage, () {
+      super.errorMessage = value;
+    });
+  }
+
+  late final _$selectedEmployeeAtom = Atom(
+    name: '_EmployeeStore.selectedEmployee',
+    context: context,
+  );
+
+  @override
+  EmployeeModel? get selectedEmployee {
+    _$selectedEmployeeAtom.reportRead();
+    return super.selectedEmployee;
+  }
+
+  @override
+  set selectedEmployee(EmployeeModel? value) {
+    _$selectedEmployeeAtom.reportWrite(value, super.selectedEmployee, () {
+      super.selectedEmployee = value;
+    });
+  }
+
   late final _$loadEmployeesAsyncAction = AsyncAction(
     '_EmployeeStore.loadEmployees',
     context: context,
@@ -53,6 +107,18 @@ mixin _$EmployeeStore on _EmployeeStore, Store {
   @override
   Future<void> loadEmployees() {
     return _$loadEmployeesAsyncAction.run(() => super.loadEmployees());
+  }
+
+  late final _$getEmployeeDetailsAsyncAction = AsyncAction(
+    '_EmployeeStore.getEmployeeDetails',
+    context: context,
+  );
+
+  @override
+  Future<void> getEmployeeDetails(String id) {
+    return _$getEmployeeDetailsAsyncAction.run(
+      () => super.getEmployeeDetails(id),
+    );
   }
 
   late final _$deleteEmployeeAsyncAction = AsyncAction(
@@ -65,11 +131,36 @@ mixin _$EmployeeStore on _EmployeeStore, Store {
     return _$deleteEmployeeAsyncAction.run(() => super.deleteEmployee(id));
   }
 
+  late final _$addEmployeeAsyncAction = AsyncAction(
+    '_EmployeeStore.addEmployee',
+    context: context,
+  );
+
+  @override
+  Future<bool> addEmployee(Map<String, dynamic> body) {
+    return _$addEmployeeAsyncAction.run(() => super.addEmployee(body));
+  }
+
+  late final _$updateEmployeeAsyncAction = AsyncAction(
+    '_EmployeeStore.updateEmployee',
+    context: context,
+  );
+
+  @override
+  Future<bool> updateEmployee(String id, Map<String, dynamic> body) {
+    return _$updateEmployeeAsyncAction.run(
+      () => super.updateEmployee(id, body),
+    );
+  }
+
   @override
   String toString() {
     return '''
 employees: ${employees},
-isLoading: ${isLoading}
+isLoading: ${isLoading},
+isDetailLoading: ${isDetailLoading},
+errorMessage: ${errorMessage},
+selectedEmployee: ${selectedEmployee}
     ''';
   }
 }

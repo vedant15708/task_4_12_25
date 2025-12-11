@@ -35,20 +35,52 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
 
   void showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
   void showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
+  }
+
+  String? validateField(String field, String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "$field is required";
+    }
+
+    switch (field) {
+      case "Employee ID":
+        if (!RegExp(r'^[0-9]+$').hasMatch(value.trim())) {
+          return "Employee ID must be numeric";
+        }
+        break;
+
+      case "Employee Name":
+        if (value.trim().length < 3) {
+          return "Name must be at least 3 characters";
+        }
+        break;
+
+      case "Salary":
+        if (!RegExp(r'^[0-9]+$').hasMatch(value.trim())) {
+          return "Salary must be a valid number";
+        }
+        break;
+
+      case "Age":
+        if (!RegExp(r'^[0-9]+$').hasMatch(value.trim())) {
+          return "Age must be numeric";
+        }
+        int age = int.tryParse(value.trim()) ?? 0;
+        if (age < 18 || age > 80) {
+          return "Age must be between 18 and 80";
+        }
+        break;
+    }
+
+    return null;
   }
 
   @override
@@ -84,9 +116,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               if (store.isLoading)
                 Container(
                   color: Colors.black.withOpacity(0.2),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: Center(child: CircularProgressIndicator()),
                 )
             ],
           );
@@ -154,6 +184,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           ),
         ),
         onPressed: () async {
+          if (!_formKey.currentState!.validate()) {
+            return;
+          }
+
           final body = {
             "name": nameCtrl.text.trim(),
             "salary": salaryCtrl.text.trim(),
@@ -206,6 +240,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         controller: controller,
         readOnly: readOnly,
         keyboardType: keyboard,
+        validator: (value) => validateField(hint, value),
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
@@ -216,3 +251,4 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     );
   }
 }
+

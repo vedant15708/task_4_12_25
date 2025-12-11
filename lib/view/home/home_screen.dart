@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import '../../stores/employee_store.dart';
 import '../add_employee/add_employee_screen.dart';
+import '../details/employee_details_screen.dart';
 import '../widgets/employee_card.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -13,19 +14,13 @@ class HomeScreen extends StatelessWidget {
 
   void showSuccess(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
   void showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -36,21 +31,16 @@ class HomeScreen extends StatelessWidget {
 
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(
-          "Manage Employees",
-          style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
-        ),
+        title: Text("Manage Employees",
+            style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
         centerTitle: true,
         iconTheme: IconThemeData(color: Colors.black),
       ),
 
       body: Observer(
         builder: (_) {
-          if (store.isLoading) {
-            return Center(child: CircularProgressIndicator());
-          }
+          if (store.isLoading) return Center(child: CircularProgressIndicator());
 
-          // ❌ ERROR STATE
           if (store.errorMessage.isNotEmpty) {
             return Center(
               child: Column(
@@ -58,18 +48,11 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.error, color: Colors.red, size: 40),
                   SizedBox(height: 10),
-                  Text(
-                    store.errorMessage,
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(store.errorMessage,
+                      style: TextStyle(color: Colors.red, fontSize: 16)),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () => store.loadEmployees(),
+                    onPressed: store.loadEmployees,
                     child: Text("Retry"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
@@ -80,7 +63,6 @@ class HomeScreen extends StatelessWidget {
             );
           }
 
-          // LIST VIEW OF EMPLOYEES
           return ListView.builder(
             padding: EdgeInsets.all(16),
             itemCount: store.employees.length,
@@ -89,7 +71,17 @@ class HomeScreen extends StatelessWidget {
 
               return EmployeeCard(
                 employee: emp,
-                isSelected: index == 0, // You can update selection logic later
+                isSelected: index == 0,
+                  onTap: () async {
+                  await store.getEmployeeDetails(emp.id);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EmployeeDetailsScreen(store: store),
+                    ),
+                  );
+                },
                 onDelete: () async {
                   try {
                     await store.deleteEmployee(emp.id);
@@ -108,12 +100,8 @@ class HomeScreen extends StatelessWidget {
                   );
 
                   if (updated == true) {
-                    try {
-                      await store.loadEmployees();
-                      showSuccess(context, "Employee updated successfully!");
-                    } catch (e) {
-                      showError(context, e.toString());
-                    }
+                    await store.loadEmployees();
+                    showSuccess(context, "Employee updated successfully!");
                   }
                 },
               );
@@ -124,25 +112,18 @@ class HomeScreen extends StatelessWidget {
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
-        child: Icon(Icons.add, color: Colors.white),
-
         onPressed: () async {
           final added = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => AddEmployeeScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => AddEmployeeScreen()),
           );
 
           if (added == true) {
-            try {
-              await store.loadEmployees();
-              showSuccess(context, "Employee added successfully!");
-            } catch (e) {
-              showError(context, e.toString());
-            }
+            await store.loadEmployees();
+            showSuccess(context, "Employee added successfully!");
           }
         },
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }

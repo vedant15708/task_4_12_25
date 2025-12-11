@@ -6,14 +6,12 @@ import '../models/employee_model.dart';
 class EmployeeRepository {
   final dio = DioClient.dio;
   Future<List<EmployeeModel>> getEmployees() async {
-    if (!await ConnectivityService.hasInternet()) {
-      throw Exception("No internet connection. Please check your network.");
-    }
+    await _checkInternet();
 
     try {
       final res = await dio.get("employees");
 
-      if (res.statusCode == 200) {
+      if (res.statusCode == 200 && res.data["data"] is List) {
         return (res.data["data"] as List)
             .map((e) => EmployeeModel.fromJson(e))
             .toList();
@@ -22,41 +20,29 @@ class EmployeeRepository {
       }
 
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Request timed out. Please try again.");
-      }
-      throw Exception("Network error: ${e.message}");
+      throw _handleDioError(e);
     }
   }
 
   Future<EmployeeModel> getEmployeeById(String id) async {
-    if (!await ConnectivityService.hasInternet()) {
-      throw Exception("No internet connection. Please check your network.");
-    }
+    await _checkInternet();
 
     try {
       final res = await dio.get("employee/$id");
 
-      if (res.statusCode == 200) {
+      if (res.statusCode == 200 && res.data["data"] != null) {
         return EmployeeModel.fromJson(res.data["data"]);
       } else {
         throw Exception("Failed to load employee details");
       }
 
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Request timed out. Please try again.");
-      }
-      throw Exception("Network error: ${e.message}");
+      throw _handleDioError(e);
     }
   }
 
-  Future<void> addEmployee(Map<String, String> body) async {
-    if (!await ConnectivityService.hasInternet()) {
-      throw Exception("No internet connection. Please check your network.");
-    }
+  Future<void> addEmployee(Map<String, dynamic> body) async {
+    await _checkInternet();
 
     try {
       final res = await dio.post("create", data: body);
@@ -66,18 +52,12 @@ class EmployeeRepository {
       }
 
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Request timed out. Please try again.");
-      }
-      throw Exception("Network error: ${e.message}");
+      throw _handleDioError(e);
     }
   }
 
-  Future<void> updateEmployee(String id, Map<String, String> body) async {
-    if (!await ConnectivityService.hasInternet()) {
-      throw Exception("No internet connection. Please check your network.");
-    }
+  Future<void> updateEmployee(String id, Map<String, dynamic> body) async {
+    await _checkInternet();
 
     try {
       final res = await dio.put("update/$id", data: body);
@@ -87,19 +67,12 @@ class EmployeeRepository {
       }
 
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Request timed out. Please try again.");
-      }
-      throw Exception("Network error: ${e.message}");
+      throw _handleDioError(e);
     }
   }
 
-
   Future<void> deleteEmployee(String id) async {
-    if (!await ConnectivityService.hasInternet()) {
-      throw Exception("No internet connection. Please check your network.");
-    }
+    await _checkInternet();
 
     try {
       final res = await dio.delete("delete/$id");
@@ -109,11 +82,22 @@ class EmployeeRepository {
       }
 
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Request timed out. Please try again.");
-      }
-      throw Exception("Network error: ${e.message}");
+      throw _handleDioError(e);
     }
+  }
+
+  Future<void> _checkInternet() async {
+    if (!await ConnectivityService.hasInternet()) {
+      throw Exception("No internet connection. Please check your network.");
+    }
+  }
+
+  Exception _handleDioError(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return Exception("Request timed out. Please try again.");
+    }
+
+    return Exception("Network error: ${e.message}");
   }
 }
